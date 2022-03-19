@@ -12,10 +12,12 @@
 #   Итог : Прибыль = 0
 #
 
+
 import logging
 from aiogram import Bot, Dispatcher, executor, types
 import os
 import json
+from random import randint
 
 
 def read_db():
@@ -39,7 +41,8 @@ def remove_from_bd(company_index, user_id, date=False):
         del (db[user_id][company_index][date])
 
     write_db(db, user_id)
-    return 'Successfully deleted'
+    # return 'Successfully deleted'
+    return True
 
 
 def write_db(new_data: dict, user_id):
@@ -109,6 +112,7 @@ def make_text(data, company_code):
     amount = 0
     price_for_now = 0
     result = 0
+    avg = 0
     max_date = '0'
 
     for date in company_data:
@@ -122,6 +126,7 @@ def make_text(data, company_code):
 
     avg = count_avg(company_data)
     result = is_profit(shares_avg_price=avg, price_for_now=price_for_now)
+    # добавление новых записей в список
     full_table = {
         'Код компании': company_code,
         'Компания': company_name,
@@ -153,6 +158,7 @@ def run_report(user_id):
     :param user_id: id пользователя, который общается с ботом
     :return: отчет для определенного пользователя
     '''
+    # пример: user_id = 820453395
     data = read_db()
     user_data = data[str(user_id)]
     msg = ''
@@ -164,6 +170,7 @@ def run_report(user_id):
 
 
 def write_down(msg):
+    # print(user_id, msg)
     msg_data = msg.split(':')
     code = msg_data[0]
     company = msg_data[1]
@@ -179,21 +186,40 @@ def write_down(msg):
 def run_writing_down(id, text):
     new_data = write_down(text)
     write_db(new_data, id)
-    return 'Successfully written'
+    # return 'Successfully written'
+    return True
 
 
+def take_answer(message_id, user_id, text):
+    if run_writing_down(user_id, text):
+        id = int(f"{message_id}{user_id}{randint(0, 25)}")
+        # Todo запись во вторую таблицу
+        return f"Данные о компании и акции записаны. Id операции:{id}"
 
-token = os.getenv("INVEST_BOT_TOKEN")
+
+# Объект бота
+token = os.getenv(key="INVEST_BOT_TOKEN")
 bot = Bot(token=token)
+
+# Диспетчер для бота
 dp = Dispatcher(bot)
+
+# Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO)
 
+
+# Todo : Дописать механику бота: удаление компании из бд и добавить боту через BotFather команды(help,delete, etc )
+# Todo: Запуск бота в serverless: Yandex functions
+# Todo: Запуск бота в serverless: Yandex functions и переписать с исп настоящей БД
+# Todo :Добавить функцию создания id and second db, that could store all operations with their id
 
 @dp.message_handler(commands="report")
 async def cmd_report(message: types.Message):
     # await message.reply(f"{message.from_user.username}, К сожалению данная функция находится в разработке.")
     await message.reply(
         f"{message.from_user.username}, вот Ваш Отчет Портфель: \n\n {run_report(message.from_user.id)}")
+
+    # await message.reply(f" {message.from_user.username}")
 
 
 @dp.message_handler(commands="start")
@@ -205,14 +231,47 @@ async def cmd_report(message: types.Message):
 async def cmd_add(message: types.Message):
     # await message.reply(f"{message.from_user.username}, К сожалению данная функция находится в разработке.")
     await message.reply(
-        f"{message.from_user.username},Введите сообщения в следующем формате:\n Индекс Акции:компания:дата в формате дд.мм.гггг:цена за акцию:количество ")
+        f"{message.from_user.username}, ответьте на это сообщение в следующем формате:\n Индекс Компании:компания:дата в формате дд.мм.гггг:цена за акцию:количество ")
 
 
-@dp.message_handler(regexp=r'^\w+?:\w+?:\d{2}\.\d{2}\.\d{4}:\d+?:\d+?$')
-async def take_answer(message: types.Message):
-    run_writing_down(message.from_user.id, message.text)
-    await message.reply(f"Данные о компании и акции записаны")
+@dp.message_handler(commands="delete_company")
+async def cmd_delete(message: types.Message):
+    # await message.reply(f"{message.from_user.username}, К сожалению данная функция находится в разработке.")
+    await message.reply(f"{message.from_user.username}, введите Индекс Компании ответом на это сообщение")
 
+
+@dp.message_handler(commands="delete_operation")
+async def cmd_delete(message: types.Message):
+    # await message.reply(f"{message.from_user.username}, К сожалению данная функция находится в разработке.")
+    await message.reply(f"{message.from_user.username}, введите id операции ответом на это сообщение ")
+    # await message.reply(
+    #     f"{message.from_user.username}, вот Ваш Отчет Портфель: \n\n {run_report(message.from_user.id)}")
+
+    # await message.reply(f" {message.from_user.username}")
+
+
+@dp.message_handler(content_types="text")
+async def messages_id(message: types.Message):
+    if message.reply_to_message:
+        if message.message_id - message.reply_to_message["message_id"] == 1 and "id операции " in \
+                message.reply_to_message["text"]:
+            # Todo: доработать эту функцию, должен удалять определенную операцию по ее id
+            await message.reply(f"Операция №{message.text} удалена")
+        elif message.message_id - message.reply_to_message["message_id"] == 1 and "Индекс Компании:компания:" in \
+                message.reply_to_message["text"]:
+            await message.reply(
+                take_answer(message_id=message.message_id, user_id=message.from_user.id, text=message.text))
+        elif message.message_id - message.reply_to_message["message_id"] == 1 and "Индекс Компании" in \
+                message.reply_to_message["text"]:
+            if remove_from_bd(company_index=message.text, user_id=message.from_user.id):
+                await message.reply(f"Компании с индексом '{message.text}' удалена")
+
+    else:
+        await message.reply('Я не понимаю')
+
+
+# TODO: добавить комментарии в репозиторий на гитхаб для бота и комметарии к выводу, бд, к каждой функции
+#  и тому что в целом делает бот
 
 if __name__ == "__main__":
     # Запуск бота
