@@ -32,7 +32,7 @@ async def open_keyboard(message):
     keyboard.add(*buttons)
     await message.answer("Клавиатура открыта", reply_markup=keyboard)
 
-# закрытие клавиатуры
+#закрытие клавиатуры
 @dispatcher.message_handler(commands=['close_keyboard'])
 @dispatcher.message_handler(aiogram.dispatcher.filters.Text(equals="❌ close_keyboard"))
 async def close_keyboard(message):
