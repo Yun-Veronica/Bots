@@ -1,22 +1,25 @@
 import requests
 from random import randint
 
+
 def command_what_weather():
     return 'Напишите: "Погода Город" на русском языке, для того чтобы узнать погоду в интересующем Вас городе'
 
-def what_city(text):
-    # print(f'"{text}"', text.split(' '), type(text))
-    # answer='one second'
-    city = text.split(' ')
-    if len(city) == 2:
-        answer = city[1].capitalize()
-    else:
-        answer = False
 
-    return answer
+# в связи с появление конечного автомата данная команда больше не нужна
+# def what_city(text):
+#     # print(f'"{text}"', text.split(' '), type(text))
+#     # answer='one second'
+#     city = text.split(' ')
+#     if len(city) == 2:
+#         answer = city[1].capitalize()
+#     else:
+#         answer = False
+#
+#     return answer
 
 def what_weather(city):
-    url = f'http://wttr.in/{city}'
+    url = f'http://wttr.in/{city.lower()}'
     weather_parameters = {
         'format': 2,
         'M': ''
@@ -24,11 +27,13 @@ def what_weather(city):
     try:
         response = requests.get(url, params=weather_parameters)
     except requests.ConnectionError:
-        return '<сетевая ошибка>'
+        func_response = 'сетевая ошибка'
     if response.status_code == 200:
-        return response.text.strip()
+        func_response = f'Погода в городе {city}: {response.text.strip()}'
     else:
-        return '<ошибка на сервере погоды. попробуйте позже>'
+        func_response = 'Ошибка на сервере погоды или в названии города. Попробуйте заново'
+    return func_response
+
 
 def show_all_commands():
     return '''
@@ -39,8 +44,9 @@ def show_all_commands():
     /keyboard_open - открыть клавиатуру
     '''
 
+
 def what_to_do(user_id):
-    doings = ['Пора кодить. Займись Питоном, жепка :)))', 'Устройте романтичный ужин на закате',
+    doings = ['Пора кодить. Займись Питоном:)))', 'Устройте романтичный ужин на закате',
               'Сходите с друзьями в парк', 'Посмотрите все сериальчики, которые долго откладывали',
               'Вы можете поучавствовать в уличных соревнованиях по баскетболу',
               'Займись спортом, начни бегать по утрам)', 'Поиграй а компьютерные игры', 'Прочитай книгу',
