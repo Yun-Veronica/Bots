@@ -1,8 +1,0 @@
-MESSAGE_FROM = Сообщение от
-LINE_CANCELED = Отменено
-CHOOSE_THE_CHAT = Выберите чат:
-CANCEL_BUTTON_TEXT = Отменить
-THANKS_FOR_NUMBER = Спасибо
-GREET_AND_ASK_FOR_NUMBER = Здравствуйте! Для отправки соообщений боту необходим номер телефона
-SEND_CONTACT_KEYBOARD_BUTTON = Отправить свой контакт
-ERROR_DURING_SENDING = Произошла ошибка при отправке сообщения. Повторите процесс заново
