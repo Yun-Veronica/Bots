@@ -8,3 +8,4 @@ SEND_CONTACT_KEYBOARD_BUTTON = Отправить свой контакт
 ERROR_DURING_SENDING = Произошла ошибка при отправке сообщения. Повторите процесс заново
 SUCCESSFUL_SENDING = Отправлено успешно
 HELP_MESSAGE = Отправь мне сообщение
+MESSAGE_FROM_GROUP = было отправлено в
